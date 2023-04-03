@@ -1,0 +1,8 @@
+.modal{
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+}
+.content{
+    max-height: calc(100vh - 200px);
+    overflow-y: scroll;
+}

@@ -1,0 +1,10 @@
+{
+  "importOrder": [
+    "^components/(.*)$",
+    "^[./]"
+  ],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true,
+  "tabWidth": 4,
+  "singleQuote": true
+}
