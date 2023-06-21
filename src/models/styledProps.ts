@@ -10,9 +10,9 @@ export interface MarginProps {
    height?: string
 }
 
-export type MarginDiv = React.HTMLAttributes<HTMLDivElement> & MarginProps
-
 export type MarginHTML<T> = React.HTMLAttributes<T> & MarginProps
+
+export type MarginDiv = React.HTMLAttributes<HTMLDivElement> & MarginProps
 
 export const MarginStyledCSS = css<MarginProps>`
    margin-top: ${(props) => props.mt || ''};

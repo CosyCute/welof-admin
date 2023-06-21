@@ -19,4 +19,9 @@ export const SIDEBAR_CONFIG = [
       name: 'Материал',
       link: '/materials',
    },
+   {
+      id: 4,
+      name: 'Статистика',
+      link: '/stats'
+   }
 ]

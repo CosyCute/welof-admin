@@ -1,4 +1,5 @@
 import { Flex, LineClamp, Text } from '$components';
+import { StatusArray } from '$constants';
 import { DeliveryArray } from '$constants/delivery';
 import { OrderResponseItem } from '$models';
 import {
@@ -39,6 +40,29 @@ export const GetOrdersColumns = ():
             title: 'ID',
             render: (_, record) => (
                 <LineClamp maxWidth={15}>{record.id}</LineClamp>
+            ),
+        },
+        {
+            key: 'status',
+            dataIndex: 'status',
+            title: 'Статус',
+            width: 150,
+            render: (_, record) => (
+                <Flex justify="center">
+                    <Text
+                        style={{
+                            borderRadius: 4,
+                            padding: '4px 12px',
+                            border: '1px solid black',
+                        }}
+                    >
+                        {
+                            StatusArray.find(
+                                (status) => status.code === record.status
+                            )?.description
+                        }
+                    </Text>
+                </Flex>
             ),
         },
         {

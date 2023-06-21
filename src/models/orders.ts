@@ -3,7 +3,7 @@ export type OrdersResponse = OrderResponseItem[];
 export interface CartItem {
     id: string;
     quantity: number;
-    size: string;
+    size: string[];
 }
 export interface OrderResponseItem {
     id: string;
@@ -11,21 +11,24 @@ export interface OrderResponseItem {
     items: CartItem[];
     email: string;
     end_date: string;
-    is_paid: string;
+    is_paid: boolean;
     name: string;
     phone: string;
     address: string;
     deliveryId: string;
     createdAt: string;
     updatedAt: string;
+    status: string;
 }
 
 export interface OrderPayload {
     cost: number;
-    items: { id: string; quantity: number }[];
+    items: CartItem[];
     email: string;
     name: string;
     phone: string;
     address: string;
     deliveryId: string;
+    is_paid: boolean;
+    status: string;
 }

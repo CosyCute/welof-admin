@@ -5,3 +5,14 @@
     box-sizing: border-box;
     position: relative;
 }
+
+.ant-image-preview-body{
+    overflow: visible !important;
+}
+
+.ant-image-preview-img{
+    max-width: calc(100vw - 200px) !important;
+    max-height: calc(100vh - 200px) !important;
+    top: 100px;
+    position: absolute;
+}

@@ -4,6 +4,7 @@ import { commonSlice } from '$store'
 import classes from './MainLayout.module.css'
 import { Layout, message, Space } from 'antd'
 import React, { FC, useEffect } from 'react'
+import {Text} from "$components";
 
 const { Header, Sider } = Layout
 
@@ -12,7 +13,6 @@ interface IProps {
 }
 
 const headerStyle: React.CSSProperties = {
-   textAlign: 'center',
    color: '#fff',
    height: 64,
    paddingInline: 50,
@@ -40,7 +40,9 @@ export const MainLayout: FC<IProps> = ({ children }) => {
       <Space direction="vertical" style={{ width: '100%' }} size={[0, 48]}>
          {contextHolder}
          <Layout>
-            <Header style={headerStyle}>Header</Header>
+            <Header style={headerStyle}>
+               <Text size="24px">Welof admin page</Text>
+            </Header>
             <Layout>
                <Sider className={classes.sidebar} style={siderStyle}>
                   <Sidebar />

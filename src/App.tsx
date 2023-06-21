@@ -2,6 +2,7 @@ import { ItemPage, MaterialPage, OrderPage, TypePage } from '$pages'
 import React, { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { Route, Routes } from 'react-router-dom'
+import StatsPage from "$pages/StatsPage";
 
 function App() {
    const navigate = useNavigate()
@@ -16,6 +17,7 @@ function App() {
    return (
       <>
          <Routes>
+            <Route element={<StatsPage />} path={'/stats'} />
             <Route element={<OrderPage />} path={'/orders'} />
             <Route element={<ItemPage />} path={'/items'} />
             <Route element={<TypePage />} path={'/types'} />

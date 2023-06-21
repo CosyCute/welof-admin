@@ -1,7 +1,10 @@
-import { Flex, Text } from '$components';
+import { Flex, OrderItem, Text } from '$components';
+import { StatusArray } from '$constants';
+import { DeliveryArray } from '$constants/delivery';
 import { useAppDispatch, useAppSelector } from '$hooks';
-import { CartItem } from '$models';
+import { CartItem, IEnum, OrderPayload } from '$models';
 import {
+    commonSlice,
     modalSlice,
     useAddOrderMutation,
     useGetItemsQuery,
@@ -9,8 +12,9 @@ import {
     useGetOrdersQuery,
     useUpdateOrderMutation,
 } from '$store';
-import { Input, Modal, Select } from 'antd';
+import { Checkbox, Input, Modal, Select } from 'antd';
 import { Option } from 'antd/es/mentions';
+import del from 'del';
 import React, {
     ChangeEvent,
     FC,
@@ -24,6 +28,7 @@ import classes from './Modal.module.css';
 interface CustomInputProps extends HTMLAttributes<HTMLInputElement> {
     value: string;
     onChange: (value: any) => void;
+    type?: string;
 }
 
 const CustomInput: FC<CustomInputProps> = (props) => {
@@ -37,7 +42,7 @@ const CustomInput: FC<CustomInputProps> = (props) => {
 export const CreateOrderFormModal = () => {
     const dispatch = useAppDispatch();
 
-    const messageApi = useAppSelector((state) => state.commonSlice.messageApi);
+    const orderItems = useAppSelector((state) => state.orderSlice.orderItems);
     const createFormModalOpened = useAppSelector(
         (state) => state.modalSlice.createFormModalOpened
     );
@@ -49,7 +54,14 @@ export const CreateOrderFormModal = () => {
     const [name, setName] = useState<string>('');
     const [title, setTitle] = useState('');
     const [opened, setOpened] = useState(false);
-    const [selectedItems, setSelectedItems] = useState<CartItem[]>([]);
+    const [selectedItemsIds, setSelectedItemsIds] = useState<string[]>([]);
+    const [address, setAddress] = useState('');
+    const [delivery, setDelivery] = useState('');
+    const [email, setEmail] = useState('');
+    const [isPaid, setIsPaid] = useState(false);
+    const [cost, setCost] = useState(0);
+    const [phone, setPhone] = useState('');
+    const [status, setStatus] = useState<string | undefined>(undefined);
 
     const handleReset = () => {
         setName('');
@@ -67,16 +79,19 @@ export const CreateOrderFormModal = () => {
 
     useEffect(() => {
         if (updateFormModalOpened) {
-            setTitle('Изменение типа');
+            setTitle('Изменение заказа');
             setOpened(true);
             if (order && Object.keys(order).length) {
                 setName(order.name);
-                setSelectedItems(order.items);
+                setSelectedItemsIds(order.items?.map((item) => item.id));
+                setAddress(order.address);
+                setDelivery(order.deliveryId);
+                setEmail(order.email);
+                setIsPaid(order.is_paid);
+                setCost(order.cost);
+                setPhone(order.phone);
+                setStatus(order.status);
             }
-        }
-        if (createFormModalOpened) {
-            setTitle('Создание типа');
-            setOpened(true);
         }
     }, [updateFormModalOpened, createFormModalOpened, order]);
 
@@ -89,31 +104,43 @@ export const CreateOrderFormModal = () => {
     };
 
     const handleSubmit = () => {
-        // const data: OrderPayload = {
-        //     name,
-        // };
-        // if (name) {
-        //     if (updateFormModalOpened)
-        //         updateOrder({
-        //             data,
-        //             id: order?.id,
-        //         }).then(() => {
-        //             refetchOrders();
-        //             dispatch(commonSlice.actions.successUpdateMessage());
-        //         });
-        //     else {
-        //         createOrder(data).then(() => {
-        //             refetchOrders();
-        //             dispatch(commonSlice.actions.successCreateMessage());
-        //         });
-        //     }
-        //     handleClose();
-        // } else {
-        //     messageApi?.open({
-        //         type: 'error',
-        //         content: 'Не добавлено имя!',
-        //     });
-        // }
+        if (status) {
+            const data: OrderPayload = {
+                cost,
+                items: orderItems,
+                email,
+                name,
+                phone,
+                address,
+                deliveryId: delivery,
+                is_paid: isPaid,
+                status: status,
+            };
+
+            if (name) {
+                if (updateFormModalOpened)
+                    updateOrder({
+                        data,
+                        id: order?.id,
+                    }).then(() => {
+                        refetchOrders();
+                        dispatch(commonSlice.actions.successUpdateMessage());
+                    });
+                else {
+                    createOrder(data).then(() => {
+                        refetchOrders();
+                        dispatch(commonSlice.actions.successCreateMessage());
+                    });
+                }
+                handleClose();
+            }
+            // else {
+            //     messageApi?.open({
+            //         type: 'error',
+            //         content: 'Не добавлено имя!',
+            //     });
+            // }
+        }
     };
 
     return (
@@ -133,42 +160,105 @@ export const CreateOrderFormModal = () => {
                         gap="20px"
                     >
                         <Flex direction="column" gap="4px">
-                            <Text>Название</Text>
+                            <Text>Статус</Text>
+                            <Select onChange={setStatus} value={status}>
+                                {StatusArray.map((item) => (
+                                    <Select.Option
+                                        value={item.code}
+                                        key={item.id}
+                                    >
+                                        {item.description}
+                                    </Select.Option>
+                                ))}
+                            </Select>{' '}
+                        </Flex>
+                        <Flex direction="column" gap="4px">
+                            <Text>Имя</Text>
                             <CustomInput value={name} onChange={setName} />
                         </Flex>
                         <Flex direction="column" gap="4px">
                             <Text>Товары</Text>
                             <Select
-                                value={selectedItems}
-                                onChange={setSelectedItems}
+                                value={selectedItemsIds}
+                                onChange={setSelectedItemsIds}
                                 mode="multiple"
                             >
                                 {items?.map((item) => (
-                                    <Select.Option key={item.id} value={item}>
+                                    <Select.Option
+                                        key={item.id}
+                                        value={item.id}
+                                    >
+                                        {item.name}
+                                    </Select.Option>
+                                ))}
+                            </Select>
+                            {selectedItemsIds?.length &&
+                                selectedItemsIds.map((selectedItem) => {
+                                    return (
+                                        <OrderItem
+                                            id={selectedItem}
+                                            setSelectedItems={
+                                                setSelectedItemsIds
+                                            }
+                                            key={selectedItem}
+                                            orderItem={order.items?.find(
+                                                (item) =>
+                                                    item.id === selectedItem
+                                            )}
+                                            item={items?.find(
+                                                (item) =>
+                                                    item.id === selectedItem
+                                            )}
+                                        />
+                                    );
+                                })}
+                        </Flex>
+                        <Flex direction="column" gap="4px">
+                            <Text>Адрес</Text>
+                            <CustomInput
+                                value={address}
+                                onChange={setAddress}
+                            />
+                        </Flex>
+                        <Flex direction="column">
+                            <Text>Доставка</Text>
+                            <Select onChange={setDelivery} value={delivery}>
+                                {DeliveryArray.map((item) => (
+                                    <Select.Option
+                                        value={item.id}
+                                        key={item.id}
+                                    >
                                         {item.name}
                                     </Select.Option>
                                 ))}
                             </Select>
                         </Flex>
                         <Flex direction="column" gap="4px">
-                            <Text>Название</Text>
-                            <CustomInput value={name} onChange={setName} />
+                            <Text>Email</Text>
+                            <CustomInput value={email} onChange={setEmail} />
+                        </Flex>
+                        <label>
+                            <Flex align="center" gap="4px">
+                                <Checkbox
+                                    checked={isPaid}
+                                    onChange={(event) =>
+                                        setIsPaid(event.target.checked)
+                                    }
+                                />
+                                <Text>Заказ оплачен</Text>
+                            </Flex>
+                        </label>
+                        <Flex direction="column" gap="4px">
+                            <Text>Стоимость заказа</Text>
+                            <CustomInput
+                                type="number"
+                                value={cost?.toString()}
+                                onChange={setCost}
+                            />
                         </Flex>
                         <Flex direction="column" gap="4px">
-                            <Text>Название</Text>
-                            <CustomInput value={name} onChange={setName} />
-                        </Flex>
-                        <Flex direction="column" gap="4px">
-                            <Text>Название</Text>
-                            <CustomInput value={name} onChange={setName} />
-                        </Flex>
-                        <Flex direction="column" gap="4px">
-                            <Text>Название</Text>
-                            <CustomInput value={name} onChange={setName} />
-                        </Flex>
-                        <Flex direction="column" gap="4px">
-                            <Text>Название</Text>
-                            <CustomInput value={name} onChange={setName} />
+                            <Text>Телефон</Text>
+                            <CustomInput value={phone} onChange={setPhone} />
                         </Flex>
                     </Flex>
                 </>
